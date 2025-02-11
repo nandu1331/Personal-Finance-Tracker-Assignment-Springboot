@@ -44,5 +44,29 @@ public class EntryController {
         return ResponseEntity.ok(entries);
     }
 
+    // Get a single entry by ID
+    @Operation(summary = "Get an entry by ID")
+    @GetMapping("/entries/{id}")
+    public ResponseEntity<EntryDto> getEntryById(@PathVariable Long id) {
+        EntryDto entryDto = entryService.getEntryById(id);
+        return ResponseEntity.ok(entryDto);
+    }
+
+    // Update an entry
+    @Operation(summary = "Update an existing entry")
+    @PutMapping("/entries/{id}")
+    public ResponseEntity<EntryDto> updateEntry(@PathVariable Long id, @Valid @RequestBody EntryDto entryDto) {
+        EntryDto updated = entryService.updateEntry(id, entryDto);
+        return ResponseEntity.ok(updated);
+    }
+
+    // Delete an entry
+    @Operation(summary = "Delete an entry")
+    @DeleteMapping("/entries/{id}")
+    public ResponseEntity<Void> deleteEntry(@PathVariable Long id) {
+        entryService.deleteEntry(id);
+        return ResponseEntity.noContent().build();
+    }
+
 
 }
