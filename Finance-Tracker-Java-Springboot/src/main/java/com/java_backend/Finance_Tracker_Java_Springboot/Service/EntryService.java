@@ -33,5 +33,19 @@ public class EntryService {
         return mapToDto(entry);
     }
 
+    // Get all entries with optional filters
+    public List<EntryDto> getEntries(String category, String typeStr, LocalDate startDate, LocalDate endDate) {
+        EntryType type = null;
+        if (typeStr != null) {
+            try {
+                type = EntryType.valueOf(typeStr.toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalArgumentException("Invalid entry type: " + typeStr);
+            }
+        }
+        List<Entry> entries = entryRepository.findByFilters(category, type, startDate, endDate);
+        return entries.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
 
 }
