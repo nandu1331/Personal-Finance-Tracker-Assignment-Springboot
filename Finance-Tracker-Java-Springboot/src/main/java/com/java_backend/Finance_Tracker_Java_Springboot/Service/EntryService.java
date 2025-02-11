@@ -1,0 +1,125 @@
+package com.java_backend.Finance_Tracker_Java_Springboot.Service;
+
+import com.java_backend.Finance_Tracker_Java_Springboot.dto.EntryDto;
+import com.java_backend.Finance_Tracker_Java_Springboot.dto.SummaryDto;
+import com.java_backend.Finance_Tracker_Java_Springboot.entity.Entry;
+import com.java_backend.Finance_Tracker_Java_Springboot.entity.EntryType;
+import com.java_backend.Finance_Tracker_Java_Springboot.Exception.ResourceNotFoundException;
+import com.java_backend.Finance_Tracker_Java_Springboot.Repository.EntryRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class EntryService {
+
+    @Autowired
+    private EntryRepository entryRepository;
+
+    // Create a new entry
+    public EntryDto createEntry(EntryDto entryDto) {
+        Entry entry = mapToEntity(entryDto);
+        Entry saved = entryRepository.save(entry);
+        return mapToDto(saved);
+    }
+
+    // Get entry by id
+    public EntryDto getEntryById(Long id) {
+        Entry entry = entryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Entry not found with id " + id));
+        return mapToDto(entry);
+    }
+
+    // Get all entries with optional filters
+    public List<EntryDto> getEntries(String category, String typeStr, LocalDate startDate, LocalDate endDate) {
+        EntryType type = null;
+        if (typeStr != null) {
+            try {
+                type = EntryType.valueOf(typeStr.toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalArgumentException("Invalid entry type: " + typeStr);
+            }
+        }
+        List<Entry> entries = entryRepository.findByFilters(category, type, startDate, endDate);
+        return entries.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
+    // Update an entry
+    public EntryDto updateEntry(Long id, EntryDto entryDto) {
+        Entry existing = entryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Entry not found with id " + id));
+
+        existing.setAmount(entryDto.getAmount());
+        existing.setCategory(entryDto.getCategory());
+        existing.setDate(entryDto.getDate());
+        existing.setDescription(entryDto.getDescription());
+        existing.setType(entryDto.getType());
+
+        Entry updated = entryRepository.save(existing);
+        return mapToDto(updated);
+    }
+
+    // Delete an entry
+    public void deleteEntry(Long id) {
+        Entry existing = entryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Entry not found with id " + id));
+        entryRepository.delete(existing);
+    }
+
+    // Get summary (total income, expense, and balance)
+    public SummaryDto getSummary() {
+        List<Entry> allEntries = entryRepository.findAll();
+        double totalIncome = allEntries.stream()
+                .filter(e -> e.getType() == EntryType.INCOME)
+                .mapToDouble(Entry::getAmount)
+                .sum();
+        double totalExpense = allEntries.stream()
+                .filter(e -> e.getType() == EntryType.EXPENSE)
+                .mapToDouble(Entry::getAmount)
+                .sum();
+        double balance = totalIncome - totalExpense;
+        return new SummaryDto(totalIncome, totalExpense, balance);
+    }
+
+    // Export entries as CSV content
+    public String exportEntriesAsCSV() {
+        List<Entry> entries = entryRepository.findAll();
+        StringBuilder sb = new StringBuilder();
+        // Header
+        sb.append("ID,Amount,Category,Date,Description,Type\n");
+        for (Entry e : entries) {
+            sb.append(e.getId()).append(",");
+            sb.append(e.getAmount()).append(",");
+            sb.append(e.getCategory()).append(",");
+            sb.append(e.getDate()).append(",");
+            sb.append("\"").append(e.getDescription() != null ? e.getDescription() : "").append("\",");
+            sb.append(e.getType()).append("\n");
+        }
+        return sb.toString();
+    }
+
+    // Helper methods for DTO <-> Entity mapping
+    private EntryDto mapToDto(Entry entry) {
+        EntryDto dto = new EntryDto();
+        dto.setId(entry.getId());
+        dto.setAmount(entry.getAmount());
+        dto.setCategory(entry.getCategory());
+        dto.setDate(entry.getDate());
+        dto.setDescription(entry.getDescription());
+        dto.setType(entry.getType());
+        return dto;
+    }
+
+    private Entry mapToEntity(EntryDto dto) {
+        Entry entry = new Entry();
+        entry.setAmount(dto.getAmount());
+        entry.setCategory(dto.getCategory());
+        entry.setDate(dto.getDate());
+        entry.setDescription(dto.getDescription());
+        entry.setType(dto.getType());
+        return entry;
+    }
+}
