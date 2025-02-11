@@ -101,5 +101,25 @@ public class EntryService {
         return sb.toString();
     }
 
+    // Helper methods for DTO <-> Entity mapping
+    private EntryDto mapToDto(Entry entry) {
+        EntryDto dto = new EntryDto();
+        dto.setId(entry.getId());
+        dto.setAmount(entry.getAmount());
+        dto.setCategory(entry.getCategory());
+        dto.setDate(entry.getDate());
+        dto.setDescription(entry.getDescription());
+        dto.setType(entry.getType());
+        return dto;
+    }
 
+    private Entry mapToEntity(EntryDto dto) {
+        Entry entry = new Entry();
+        entry.setAmount(dto.getAmount());
+        entry.setCategory(dto.getCategory());
+        entry.setDate(dto.getDate());
+        entry.setDescription(dto.getDescription());
+        entry.setType(dto.getType());
+        return entry;
+    }
 }
