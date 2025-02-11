@@ -84,5 +84,22 @@ public class EntryService {
         return new SummaryDto(totalIncome, totalExpense, balance);
     }
 
+    // Export entries as CSV content
+    public String exportEntriesAsCSV() {
+        List<Entry> entries = entryRepository.findAll();
+        StringBuilder sb = new StringBuilder();
+        // Header
+        sb.append("ID,Amount,Category,Date,Description,Type\n");
+        for (Entry e : entries) {
+            sb.append(e.getId()).append(",");
+            sb.append(e.getAmount()).append(",");
+            sb.append(e.getCategory()).append(",");
+            sb.append(e.getDate()).append(",");
+            sb.append("\"").append(e.getDescription() != null ? e.getDescription() : "").append("\",");
+            sb.append(e.getType()).append("\n");
+        }
+        return sb.toString();
+    }
+
 
 }
