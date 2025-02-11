@@ -47,5 +47,27 @@ public class EntryService {
         return entries.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
+    // Update an entry
+    public EntryDto updateEntry(Long id, EntryDto entryDto) {
+        Entry existing = entryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Entry not found with id " + id));
+
+        existing.setAmount(entryDto.getAmount());
+        existing.setCategory(entryDto.getCategory());
+        existing.setDate(entryDto.getDate());
+        existing.setDescription(entryDto.getDescription());
+        existing.setType(entryDto.getType());
+
+        Entry updated = entryRepository.save(existing);
+        return mapToDto(updated);
+    }
+
+    // Delete an entry
+    public void deleteEntry(Long id) {
+        Entry existing = entryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Entry not found with id " + id));
+        entryRepository.delete(existing);
+    }
+
 
 }
