@@ -68,5 +68,25 @@ public class EntryController {
         return ResponseEntity.noContent().build();
     }
 
+    // Get summary: total income, total expense, and balance
+    @Operation(summary = "Get financial summary")
+    @GetMapping("/summary")
+    public ResponseEntity<SummaryDto> getSummary() {
+        SummaryDto summary = entryService.getSummary();
+        return ResponseEntity.ok(summary);
+    }
 
+    // Export entries to CSV
+    @Operation(summary = "Export entries as CSV")
+    @GetMapping("/entries/export")
+    public ResponseEntity<byte[]> exportEntriesToCSV() {
+        String csvContent = entryService.exportEntriesAsCSV();
+        byte[] output = csvContent.getBytes();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=entries.csv");
+        headers.setContentType(MediaType.TEXT_PLAIN);
+
+        return ResponseEntity.ok().headers(headers).body(output);
+    }
 }
