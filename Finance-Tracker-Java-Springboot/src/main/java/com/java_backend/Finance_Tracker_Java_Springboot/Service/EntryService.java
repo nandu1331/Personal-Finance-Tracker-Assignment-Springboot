@@ -69,5 +69,20 @@ public class EntryService {
         entryRepository.delete(existing);
     }
 
+    // Get summary (total income, expense, and balance)
+    public SummaryDto getSummary() {
+        List<Entry> allEntries = entryRepository.findAll();
+        double totalIncome = allEntries.stream()
+                .filter(e -> e.getType() == EntryType.INCOME)
+                .mapToDouble(Entry::getAmount)
+                .sum();
+        double totalExpense = allEntries.stream()
+                .filter(e -> e.getType() == EntryType.EXPENSE)
+                .mapToDouble(Entry::getAmount)
+                .sum();
+        double balance = totalIncome - totalExpense;
+        return new SummaryDto(totalIncome, totalExpense, balance);
+    }
+
 
 }
